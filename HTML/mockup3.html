@@ -72,7 +72,6 @@
         }
         .nav-link:hover::after { width: 100%; }
 
-        /* === STYLING 3D CAROUSEL & FLIP CARD === */
         .gallery-container {
             perspective: 1500px; display: flex; justify-content: center;
             align-items: center; height: 500px; width: 100%; position: relative;
@@ -121,10 +120,9 @@
         .carousel-card.hidden {
             transform: translateX(0) translateZ(-800px) rotateY(0deg);
             z-index: 1;
-            opacity: 0; /* Opacity 0 agar benar-benar hilang */
+            opacity: 0; 
         }
         
-        /* Konten Flip Card */
         .flip-card-inner {
             position: relative; width: 100%; height: 100%;
             transition: transform 0.6s; transform-style: preserve-3d;
@@ -153,7 +151,6 @@
             display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3;
             -webkit-box-orient: vertical; overflow: hidden;
         }
-        /* Tombol Flip */
         .flip-button {
             margin-top: 15px; padding: 6px 12px; border-radius: 6px;
             font-size: 12px; font-weight: 600; cursor: pointer;
@@ -164,7 +161,6 @@
         .flip-card-back .flip-button { background: #800000; color: #FFFFFF; }
         .flip-card-back .flip-button:hover { background: #600000; }
 
-        /* === STYLING MODAL POPUP === */
         #modal-popup { transition: opacity 0.3s ease, visibility 0.3s ease; }
         #modal-popup.visible { opacity: 1; visibility: visible; }
         #modal-content { transition: opacity 0.3s ease, transform 0.3s ease; }
@@ -607,7 +603,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- 1. MODUL THEME TOGGLE ---
             const toggleButton = document.getElementById('theme-toggle');
             const iconSun = document.getElementById('icon-sun');
             const iconMoon = document.getElementById('icon-moon');
@@ -626,17 +621,14 @@
                 const newTheme = isDark ? 'light' : 'dark';
                 updateThemeUI(newTheme === 'dark');
                 localStorage.setItem('theme', newTheme);
-                // Listener untuk peta ada di modul Peta (Modul 5)
             });
 
 
-            // --- 2. MODUL 3D TILT ---
             VanillaTilt.init(document.querySelectorAll(".tilt-card, .forum-card"), {
                 max: 10, speed: 400, glare: true, "max-glare": 0.15,
             });
 
 
-            // --- 3. MODUL ANIMASI GSAP ---
             gsap.registerPlugin(ScrollTrigger);
             gsap.from(".hero-reveal", {
                 duration: 1.0, opacity: 0, y: 30, stagger: 0.2,
@@ -653,17 +645,13 @@
                 duration: 0.8, opacity: 0, y: 50, stagger: 0.2, ease: "power3.out"
             });
 
-
-            // --- 4. MODUL 3D CAROUSEL, FLIP, & MODAL (VERSI 5 KARTU) ---
             const carouselCards = document.querySelectorAll('.carousel-card');
             const totalCards = carouselCards.length;
             let currentIndex = 0;
 
-            // Elemen Tombol Navigasi
             const carouselPrevBtn = document.getElementById('carousel-prev');
             const carouselNextBtn = document.getElementById('carousel-next');
 
-            // Elemen Modal
             const modal = document.getElementById('modal-popup');
             const modalContent = document.getElementById('modal-content');
             const modalCloseBtn = document.getElementById('modal-close');
@@ -671,15 +659,12 @@
             const modalTitle = document.getElementById('modal-title');
             const modalDesc = document.getElementById('modal-description');
             
-            // Elemen Tombol Flip
             const flipButtons = document.querySelectorAll('.flip-button');
 
             if (totalCards > 0) {
-                // --- FUNGSI CAROUSEL (DIMODIFIKASI) ---
                 function updateCarousel(newIndex, instant = false) {
                     currentIndex = (newIndex + totalCards) % totalCards;
                     
-                    // Index untuk 5 kartu
                     const leftIndex = (currentIndex - 1 + totalCards) % totalCards;
                     const rightIndex = (currentIndex + 1) % totalCards;
                     const farLeftIndex = (currentIndex - 2 + totalCards) % totalCards;
@@ -712,12 +697,11 @@
                     });
                     
                     if (instant) {
-                        void carouselCards[0].offsetWidth; // Memicu reflow
+                        void carouselCards[0].offsetWidth; 
                         carouselCards.forEach(card => card.style.transition = '');
                     }
                 }
 
-                // --- FUNGSI MODAL ---
                 function openModal(card) {
                     const img = card.getAttribute('data-img');
                     const title = card.getAttribute('data-title');
@@ -734,9 +718,6 @@
                     modal.classList.remove('visible');
                 }
 
-                // --- EVENT LISTENERS ---
-
-                // 1. Event Listener untuk Navigasi Carousel (Klik Kartu)
                 carouselCards.forEach((card, index) => {
                     card.addEventListener('click', (e) => {
                         if (e.target.classList.contains('flip-button')) return;
@@ -748,16 +729,15 @@
                         } else if (card.classList.contains('right')) {
                             updateCarousel(currentIndex + 1);
                         } else if (card.classList.contains('left-far')) {
-                            updateCarousel(currentIndex - 2); // Lompat 2
+                            updateCarousel(currentIndex - 2); 
                         } else if (card.classList.contains('right-far')) {
-                            updateCarousel(currentIndex + 2); // Lompat 2
+                            updateCarousel(currentIndex + 2); 
                         } else {
                             updateCarousel(index);
                         }
                     });
                 });
 
-                // 2. Event Listener untuk Tombol Flip
                 flipButtons.forEach(button => {
                     button.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -766,13 +746,11 @@
                     });
                 });
 
-                // 3. Event Listener untuk Menutup Modal
                 modalCloseBtn.addEventListener('click', closeModal);
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) closeModal();
                 });
 
-                // 4. Event Listener untuk Tombol Navigasi (BARU)
                 carouselPrevBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     updateCarousel(currentIndex - 1);
@@ -783,12 +761,10 @@
                     updateCarousel(currentIndex + 1);
                 });
 
-                // Inisialisasi carousel
                 updateCarousel(0, true);
             }
 
 
-            // --- 5. MODUL PETA INTERAKTIF LEAFLET ---
             function initMap() {
                 const isDark = document.documentElement.classList.contains('dark');
                 
@@ -825,10 +801,8 @@
                 });
             }
 
-            // Panggil initMap() saat DOM siap
             initMap();
 
-            // Inisialisasi ulang peta saat tema berganti
             toggleButton.addEventListener('click', () => {
                 setTimeout(initMap, 100); 
             });
