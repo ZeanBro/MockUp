@@ -5,24 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ruang Tari Nusantara | Platform Digital Seni Tari Indonesia</title>
     
-    <!-- Leaflet CSS & JS -->
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Google Fonts -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
+    
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- GSAP untuk animasi -->
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     
-    <!-- AlpineJS untuk interaktivitas -->
+    
     <script src="//unpkg.com/alpinejs" defer></script>
     
     <script>
@@ -123,7 +123,7 @@
             width: 100%;
         }
         
-        /* Animasi untuk section */
+        
         .section-hidden {
             opacity: 0;
             transform: translateY(50px);
@@ -135,14 +135,14 @@
             transform: translateY(0);
         }
         
-        /* Gaya untuk peta yang lebih mudah digunakan */
+        
         #map-container {
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         
-        /* Floating Action Button */
+        
         .fab {
             position: fixed;
             bottom: 30px;
@@ -211,7 +211,7 @@
             background: #3C3C3C;
         }
         
-        /* Gaya untuk card direktori sanggar */
+        
         .sanggar-card {
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border-radius: 16px;
@@ -251,7 +251,7 @@
             transform: scale(1.1);
         }
         
-        /* Gaya untuk filter dropdown */
+        
         .filter-dropdown {
             position: relative;
             display: inline-block;
@@ -278,7 +278,7 @@
             color: white;
         }
         
-        /* Gaya untuk forum diskusi */
+        
         .forum-card {
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             border-radius: 16px;
@@ -308,7 +308,7 @@
             opacity: 1;
         }
         
-        /* Animasi untuk kalender event */
+        
         .event-timeline {
             position: relative;
         }
@@ -323,7 +323,7 @@
             background: #D4AF37;
         }
         
-        /* Modal styles */
+        
         .modal {
             display: none;
             position: fixed;
@@ -372,7 +372,7 @@
             color: #D4AF37;
         }
         
-        /* Responsif */
+        
         @media (max-width: 768px) {
             .fab {
                 bottom: 20px;
@@ -394,7 +394,7 @@
             }
         }
         
-        /* Mobile menu styles */
+        
         .mobile-menu {
             display: none;
             position: fixed;
@@ -432,7 +432,7 @@
 </head>
 
 <body class="text-base-800 dark:text-slate-300 bg-base-100 dark:bg-base-900">
-    <!-- Header -->
+    
     <header class="fixed top-0 left-0 right-0 z-50 bg-base-100/80 dark:bg-base-900/80 backdrop-blur-md border-b border-slate-200 dark:border-base-800/50 shadow-sm">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="text-2xl font-semibold text-[#1E1E1E] dark:text-white flex-shrink-0">
@@ -460,7 +460,7 @@
                         <svg id="icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </button>
                     
-                    <!-- Mobile Menu Button -->
+                    
                     <button class="mobile-menu-btn md:hidden text-slate-600 dark:text-slate-300" id="mobile-menu-toggle">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -474,7 +474,7 @@
             </div>
         </nav>
         
-        <!-- Mobile Menu -->
+        
         <div class="mobile-menu" id="mobile-menu">
             <div class="flex flex-col space-y-4">
                 <a href="#beranda" class="nav-link py-2">Beranda</a>
@@ -489,7 +489,7 @@
         </div>
     </header>
 
-    <!-- Floating Action Button -->
+    
     <div class="fab" id="fab">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -515,11 +515,11 @@
         </div>
     </div>
 
-    <!-- Main Content -->
+    
     <main>
-        <!-- Hero Section -->
+        
         <section id="beranda" class="min-h-screen flex flex-col justify-center items-center pt-20 px-6 relative overflow-hidden">
-            <!-- Animated Background Elements -->
+            
             <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 <div class="absolute top-20 left-10 w-72 h-72 bg-accent-primary/10 rounded-full blur-3xl animate-pulse"></div>
                 <div class="absolute bottom-20 right-10 w-96 h-96 bg-accent-secondary/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
@@ -527,7 +527,7 @@
             </div>
             
             <div class="text-center max-w-4xl z-10 relative">
-                <!-- Badge -->
+                
                 <div class="inline-block mb-6 px-6 py-2 bg-white/80 dark:bg-base-800/80 backdrop-blur-md rounded-full border border-accent-primary/20 shadow-lg">
                     <span class="text-sm font-semibold text-accent-primary">✨ SevenFiveGo ✨</span>
                 </div>
@@ -555,7 +555,7 @@
                     </a>
                 </div>
                 
-                <!-- Stats -->
+                
                 <div class="mt-16 grid grid-cols-3 gap-6 max-w-2xl mx-auto">
                     <div class="bg-white/60 dark:bg-base-800/60 backdrop-blur-md rounded-2xl p-6 border border-accent-primary/10 shadow-lg">
                         <div class="text-3xl font-bold text-accent-primary mb-2">320+</div>
@@ -573,7 +573,7 @@
             </div>
         </section>
 
-        <!-- Peta Budaya Section -->
+        
         <section id="peta" class="py-24 px-6 bg-white/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
@@ -611,7 +611,7 @@
             </div>
         </section>
 
-        <!-- Kalender Section -->
+        
         <section id="kalender" class="py-24 px-6 bg-base-100/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
@@ -631,7 +631,7 @@
             </div>
         </section>
 
-        <!-- Event Section -->
+        
         <section id="event" class="py-24 px-6 bg-base-100/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-16">
@@ -685,7 +685,7 @@
             </div>
         </section>
 
-        <!-- Direktori Sanggar Section -->
+        
         <section id="direktori" class="py-24 px-6 bg-white/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
@@ -731,7 +731,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Sanggar Card 1 -->
+                    
                     <div class="sanggar-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
                         <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sanggar Tari" class="w-full h-48 object-cover">
                         <div class="p-6">
@@ -747,7 +747,7 @@
                         </div>
                     </div>
                     
-                    <!-- Sanggar Card 2 -->
+                    
                     <div class="sanggar-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
                         <img src="https://images.unsplash.com/photo-1531058020387-3be344556be6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sanggar Tari" class="w-full h-48 object-cover">
                         <div class="p-6">
@@ -763,7 +763,7 @@
                         </div>
                     </div>
                     
-                    <!-- Sanggar Card 3 -->
+                    
                     <div class="sanggar-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
                         <img src="https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sanggar Tari" class="w-full h-48 object-cover">
                         <div class="p-6">
@@ -788,7 +788,7 @@
             </div>
         </section>
 
-        <!-- Profil Section -->
+        
         <section id="profiles" class="py-24 px-6 bg-base-100/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
@@ -799,7 +799,7 @@
                 </p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <!-- Profil 1 -->
+                    
                     <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
                         <img src="https://ui-avatars.com/api/?name=Andi+W&background=800000&color=fff&size=120&rounded=true" alt="Andi Wijaya" class="w-24 h-24 rounded-full mx-auto mb-4">
                         <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Andi Wijaya</h3>
@@ -807,7 +807,7 @@
                         <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
                     </div>
                     
-                    <!-- Profil 2 -->
+                    
                     <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
                         <img src="https://ui-avatars.com/api/?name=Sari+D&background=D4AF37&color=fff&size=120&rounded=true" alt="Sari Dewi" class="w-24 h-24 rounded-full mx-auto mb-4">
                         <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Sari Dewi</h3>
@@ -815,7 +815,7 @@
                         <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
                     </div>
                     
-                    <!-- Profil 3 -->
+                    
                     <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
                         <img src="https://ui-avatars.com/api/?name=Rizki+M&background=2C2C2C&color=fff&size=120&rounded=true" alt="Rizki Maulana" class="w-24 h-24 rounded-full mx-auto mb-4">
                         <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Rizki Maulana</h3>
@@ -823,7 +823,7 @@
                         <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
                     </div>
                     
-                    <!-- Profil 4 -->
+                    
                     <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
                         <img src="https://ui-avatars.com/api/?name=Dewi+S&background=800000&color=fff&size=120&rounded=true" alt="Dewi Sari" class="w-24 h-24 rounded-full mx-auto mb-4">
                         <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Dewi Sari</h3>
@@ -840,7 +840,7 @@
             </div>
         </section>
 
-        <!-- Talent Marketplace Section -->
+        
         <section id="marketplace" class="py-24 px-6 bg-white/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
@@ -851,7 +851,7 @@
                 </p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                    <!-- Lowongan 1 -->
+                    
                     <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
@@ -870,7 +870,7 @@
                         </div>
                     </div>
                     
-                    <!-- Lowongan 2 -->
+                    
                     <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6">
                         <div class="flex justify-between items-start mb-4">
                             <div>
@@ -898,7 +898,7 @@
             </div>
         </section>
 
-        <!-- Forum Section -->
+        
         <section id="forum" class="py-24 px-6 bg-white/50 dark:bg-transparent">
             <div class="container mx-auto">
                 <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
@@ -915,7 +915,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Forum Card 1 -->
+                    
                     <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
                         <div class="p-6">
                             <div class="flex items-center gap-3 mb-4">
@@ -932,7 +932,7 @@
                         </div>
                     </div>
                     
-                    <!-- Forum Card 2 -->
+                    
                     <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
                         <div class="p-6">
                             <div class="flex items-center gap-3 mb-4">
@@ -949,7 +949,7 @@
                         </div>
                     </div>
                     
-                    <!-- Forum Card 3 -->
+                    
                     <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
                         <div class="p-6">
                             <div class="flex items-center gap-3 mb-4">
@@ -977,7 +977,7 @@
 
     </main>
 
-    <!-- Footer -->
+    
     <footer class="bg-base-900 text-[#F1F1F1] py-16 px-6">
         <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
             <div>
@@ -1017,7 +1017,7 @@
         </div>
     </footer>
 
-    <!-- Modal Tentang Kami -->
+    
     <div class="modal" id="about-modal">
         <div class="modal-content">
             <button class="close-modal" id="close-about-modal">&times;</button>
@@ -1049,7 +1049,7 @@
         </div>
     </div>
 
-    <!-- Modal Buat Diskusi Baru -->
+    
     <div class="modal" id="discussion-modal">
         <div class="modal-content">
             <button class="close-modal" id="close-discussion-modal">&times;</button>
@@ -1087,7 +1087,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ===== THEME TOGGLE =====
+            
             const toggleButton = document.getElementById('theme-toggle');
             const iconSun = document.getElementById('icon-sun');
             const iconMoon = document.getElementById('icon-moon');
@@ -1108,11 +1108,11 @@
                 updateThemeUI(newTheme === 'dark');
                 localStorage.setItem('theme', newTheme);
                 
-                // Reinitialize map when theme changes
+                
                 setTimeout(initMap, 100);
             });
 
-            // ===== MOBILE MENU =====
+            
             const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
             const mobileMenu = document.getElementById('mobile-menu');
             
@@ -1120,7 +1120,7 @@
                 mobileMenu.classList.toggle('open');
             });
             
-            // Close mobile menu when clicking on a link
+            
             const mobileMenuLinks = mobileMenu.querySelectorAll('a');
             mobileMenuLinks.forEach(link => {
                 link.addEventListener('click', function() {
@@ -1128,7 +1128,7 @@
                 });
             });
 
-            // ===== FLOATING ACTION BUTTON =====
+            
             const fab = document.getElementById('fab');
             const fabMenu = document.getElementById('fab-menu');
             
@@ -1136,14 +1136,14 @@
                 fabMenu.classList.toggle('open');
             });
             
-            // Close FAB menu when clicking outside
+            
             document.addEventListener('click', function(event) {
                 if (!fab.contains(event.target) && !fabMenu.contains(event.target)) {
                     fabMenu.classList.remove('open');
                 }
             });
             
-            // FAB menu items functionality
+            
             const fabItems = document.querySelectorAll('.fab-item[data-target]');
             fabItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -1153,7 +1153,7 @@
                 });
             });
 
-            // ===== MAP INITIALIZATION =====
+            
             let map;
             let markers = [];
             
@@ -1179,13 +1179,13 @@
                     maxZoom: 19
                 }).addTo(map);
 
-                // Clear existing markers
+                
                 markers.forEach(marker => {
                     map.removeLayer(marker);
                 });
                 markers = [];
 
-                // Custom icons for different types
+                
                 const sanggarIcon = L.icon({
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
                     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
@@ -1213,7 +1213,7 @@
                     shadowSize: [41, 41]
                 });
 
-                // Sample locations with types
+                
                 const locations = [
                     { lat: -6.2088, lng: 106.8456, title: "Sanggar Tari Kemuning", type: "sanggar", desc: "Sanggar tari tradisional Cirebon" },
                     { lat: -7.2575, lng: 112.7521, title: "Pagelaran Tari Kolosal", type: "event", desc: "Event tari kolosal di Surabaya" },
@@ -1232,28 +1232,28 @@
                         .addTo(map)
                         .bindPopup(`<b>${loc.title}</b><br>${loc.desc}<br><button class="mt-2 px-3 py-1 bg-accent-primary text-white text-sm rounded">Lihat Detail</button>`);
                     
-                    // Add data attribute for filtering
+                    
                     marker.getElement().setAttribute('data-type', loc.type);
                     markers.push(marker);
                 });
             }
 
-            // Initialize map
+            
             initMap();
 
-            // ===== MAP FILTERS =====
+            
             const filterButtons = document.querySelectorAll('.filter-btn');
             
             filterButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    // Remove active class from all buttons
+                    
                     filterButtons.forEach(btn => btn.classList.remove('active'));
-                    // Add active class to clicked button
+                    
                     this.classList.add('active');
                     
                     const filter = this.getAttribute('data-filter');
                     
-                    // Filter markers based on type
+                    
                     markers.forEach(marker => {
                         const markerType = marker.getElement().getAttribute('data-type');
                         if (filter === 'all' || markerType === filter) {
@@ -1265,7 +1265,7 @@
                 });
             });
 
-            // ===== FIND LOCATION BUTTON =====
+            
             const findLocationBtn = document.getElementById('find-location');
             
             findLocationBtn.addEventListener('click', function() {
@@ -1275,10 +1275,10 @@
                             const lat = position.coords.latitude;
                             const lng = position.coords.longitude;
                             
-                            // Pan map to user's location
+                            
                             map.setView([lat, lng], 13);
                             
-                            // Add a marker at user's location
+                            
                             L.marker([lat, lng])
                                 .addTo(map)
                                 .bindPopup('Lokasi Anda')
@@ -1295,7 +1295,7 @@
                 }
             });
 
-            // ===== MODAL FUNCTIONALITY =====
+            
             const aboutBtn = document.getElementById('about-btn');
             const aboutModal = document.getElementById('about-modal');
             const closeAboutModal = document.getElementById('close-about-modal');
@@ -1308,7 +1308,7 @@
                 aboutModal.classList.remove('open');
             });
             
-            // Close modal when clicking outside
+            
             aboutModal.addEventListener('click', function(event) {
                 if (event.target === aboutModal) {
                     aboutModal.classList.remove('open');
@@ -1327,14 +1327,14 @@
                 discussionModal.classList.remove('open');
             });
             
-            // Close modal when clicking outside
+            
             discussionModal.addEventListener('click', function(event) {
                 if (event.target === discussionModal) {
                     discussionModal.classList.remove('open');
                 }
             });
 
-            // ===== SMOOTH SCROLL =====
+            
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -1352,8 +1352,8 @@
                 });
             });
 
-            // ===== ANIMATIONS ON SCROLL =====
-            // Simple fade-in animation for sections
+            
+            
             const sections = document.querySelectorAll('section');
             
             const observerOptions = {
@@ -1374,7 +1374,7 @@
                 observer.observe(section);
             });
 
-            // ===== SEARCH FUNCTIONALITY =====
+            
             const searchButton = document.getElementById('search-button');
             
             searchButton.addEventListener('click', function() {
