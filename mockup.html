@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Tari Nusantara | Platform Digital Seni Tari Indonesia</title>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP untuk animasi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- AlpineJS untuk interaktivitas -->
+    <script src="//unpkg.com/alpinejs" defer></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'base-900': '#1A1A1A',
+                        'base-800': '#2C2C2C',
+                        'base-100': '#FDFBF6',
+                        'accent-primary': '#800000',
+                        'accent-secondary': '#D4AF37',
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(128, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(128, 0, 0, 0.6); }
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #FDFBF6 0%, #FFF8E7 50%, #FDFBF6 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 15s ease infinite;
+            transition: background-color 0.4s ease-out;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(128, 0, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .dark body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a1a1a 50%, #1a1a1a 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 15s ease infinite;
+        }
+        
+        .dark body::before {
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(128, 0, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+        }
+        
+        .nav-link {
+            position: relative;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #D4AF37;
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Animasi untuk section */
+        .section-hidden {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+        
+        .section-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Gaya untuk peta yang lebih mudah digunakan */
+        #map-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #800000, #A00000);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(128, 0, 0, 0.4);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+        
+        .fab:hover {
+            transform: scale(1.15) rotate(90deg);
+            background: linear-gradient(135deg, #A00000, #800000);
+            box-shadow: 0 12px 32px rgba(128, 0, 0, 0.6);
+        }
+        
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            width: 200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+            padding: 10px 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .fab-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .fab-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .fab-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .dark .fab-menu {
+            background: #2C2C2C;
+            color: white;
+        }
+        
+        .dark .fab-item:hover {
+            background: #3C3C3C;
+        }
+        
+        /* Gaya untuk card direktori sanggar */
+        .sanggar-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            position: relative;
+            background: white;
+        }
+        
+        .sanggar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #800000, #D4AF37);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+        
+        .sanggar-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(128, 0, 0, 0.2);
+        }
+        
+        .sanggar-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .sanggar-card img {
+            transition: transform 0.5s ease;
+        }
+        
+        .sanggar-card:hover img {
+            transform: scale(1.1);
+        }
+        
+        /* Gaya untuk filter dropdown */
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        
+        .filter-dropdown:hover .filter-content {
+            display: block;
+        }
+        
+        .dark .filter-content {
+            background-color: #2C2C2C;
+            color: white;
+        }
+        
+        /* Gaya untuk forum diskusi */
+        .forum-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: white;
+        }
+        
+        .forum-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(128, 0, 0, 0.05), rgba(212, 175, 55, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .forum-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 16px 32px rgba(128, 0, 0, 0.15);
+        }
+        
+        .forum-card:hover::after {
+            opacity: 1;
+        }
+        
+        /* Animasi untuk kalender event */
+        .event-timeline {
+            position: relative;
+        }
+        
+        .event-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #D4AF37;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.open {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .dark .modal-content {
+            background: #2C2C2C;
+            color: white;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #800000;
+        }
+        
+        .dark .close-modal {
+            color: #D4AF37;
+        }
+        
+        /* Responsif */
+        @media (max-width: 768px) {
+            .fab {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+            }
+            
+            .fab-menu {
+                width: 180px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        /* Mobile menu styles */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 40;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-menu.open {
+            display: block;
+        }
+        
+        .dark .mobile-menu {
+            background: #2C2C2C;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-base-800 dark:text-slate-300 bg-base-100 dark:bg-base-900">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-base-100/80 dark:bg-base-900/80 backdrop-blur-md border-b border-slate-200 dark:border-base-800/50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-semibold text-[#1E1E1E] dark:text-white flex-shrink-0">
+                Ruang Tari Nusantara
+            </div>
+            
+            <div class="flex items-center gap-10">
+                <div class="nav-links hidden md:flex items-center gap-8 text-base-800 dark:text-slate-300">
+                    <a href="#beranda" class="nav-link">Beranda</a>
+                    <a href="#peta" class="nav-link">Peta Budaya</a>
+                    <a href="#kalender" class="nav-link">Kalender</a>
+                    <a href="#event" class="nav-link">Event</a>
+                    <a href="#direktori" class="nav-link">Direktori</a>
+                    <a href="#profiles" class="nav-link">Profil</a>
+                    <a href="#marketplace" class="nav-link">Talent</a>
+                    <a href="#forum" class="nav-link">Forum</a>
+                </div>
+
+                <div class="flex items-center gap-5">
+                    <button id="search-button" class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex-shrink-0" aria-label="Cari">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                    <button id="theme-toggle" class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex-shrink-0" aria-label="Ubah tema">
+                        <svg id="icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d=" M12 2v2 M12 20v2 M20 12h2 M4 12h-2 M17.95 6.05l1.414-1.414 M6.05 17.95l-1.414 1.414 M6.05 6.05l-1.414-1.414 M17.95 17.95l1.414 1.414 M12 17a5 5 0 1 0 0-10a5 5 0 0 0 0 10z" /></svg>
+                        <svg id="icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="mobile-menu-btn md:hidden text-slate-600 dark:text-slate-300" id="mobile-menu-toggle">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    
+                    <a href="#profil" title="Profil Anda" class="w-9 h-9 bg-base-800 dark:bg-base-100 rounded-full flex items-center justify-center text-white dark:text-base-900 font-semibold text-sm hidden md:flex">
+                        AW
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="flex flex-col space-y-4">
+                <a href="#beranda" class="nav-link py-2">Beranda</a>
+                <a href="#peta" class="nav-link py-2">Peta Budaya</a>
+                <a href="#kalender" class="nav-link py-2">Kalender</a>
+                <a href="#event" class="nav-link py-2">Event</a>
+                <a href="#direktori" class="nav-link py-2">Direktori</a>
+                <a href="#profiles" class="nav-link py-2">Profil</a>
+                <a href="#marketplace" class="nav-link py-2">Talent</a>
+                <a href="#forum" class="nav-link py-2">Forum</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Floating Action Button -->
+    <div class="fab" id="fab">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        
+        <div class="fab-menu" id="fab-menu">
+            <div class="fab-item" data-target="#peta">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span>Peta Budaya</span>
+            </div>
+            <div class="fab-item" data-target="#event">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span>Event Tari</span>
+            </div>
+            <div class="fab-item" data-target="#forum">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-1m6-8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l4-4z"></path></svg>
+                <span>Forum Diskusi</span>
+            </div>
+            <div class="fab-item" id="about-btn">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>Tentang Kami</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section id="beranda" class="min-h-screen flex flex-col justify-center items-center pt-20 px-6 relative overflow-hidden">
+            <!-- Animated Background Elements -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                <div class="absolute top-20 left-10 w-72 h-72 bg-accent-primary/10 rounded-full blur-3xl animate-pulse"></div>
+                <div class="absolute bottom-20 right-10 w-96 h-96 bg-accent-secondary/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-accent-primary/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+            </div>
+            
+            <div class="text-center max-w-4xl z-10 relative">
+                <!-- Badge -->
+                <div class="inline-block mb-6 px-6 py-2 bg-white/80 dark:bg-base-800/80 backdrop-blur-md rounded-full border border-accent-primary/20 shadow-lg">
+                    <span class="text-sm font-semibold text-accent-primary">✨ SevenFiveGo ✨</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-extrabold text-[#1E1E1E] dark:text-white mb-6 leading-tight">
+                    <span class="bg-gradient-to-r from-accent-primary via-accent-primary/80 to-accent-secondary bg-clip-text text-transparent">
+                        Menari Menyatukan
+                    </span>
+                    <br>
+                    <span class="text-[#1E1E1E] dark:text-white">Nusantara</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-base-800 dark:text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    Temukan panggung, komunitas, dan event seni tari di seluruh Indonesia dalam satu platform digital terintegrasi.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+                    <a href="#peta" class="group px-8 py-4 bg-gradient-to-r from-accent-primary to-accent-primary/90 text-white font-semibold rounded-xl shadow-xl shadow-accent-primary/40 transition-all duration-300 hover:shadow-2xl hover:shadow-accent-primary/50 hover:scale-105 relative overflow-hidden">
+                        <span class="relative z-10 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Lihat Peta Budaya
+                        </span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-accent-primary/90 to-accent-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </a>
+                    <a href="#forum" class="px-8 py-4 bg-white/90 dark:bg-base-800/90 backdrop-blur-md text-base-800 dark:text-white font-semibold rounded-xl shadow-xl border-2 border-accent-primary/20 transition-all duration-300 hover:border-accent-primary/40 hover:scale-105 hover:shadow-2xl">
+                        Forum Komunitas
+                    </a>
+                </div>
+                
+                <!-- Stats -->
+                <div class="mt-16 grid grid-cols-3 gap-6 max-w-2xl mx-auto">
+                    <div class="bg-white/60 dark:bg-base-800/60 backdrop-blur-md rounded-2xl p-6 border border-accent-primary/10 shadow-lg">
+                        <div class="text-3xl font-bold text-accent-primary mb-2">320+</div>
+                        <div class="text-sm text-base-800 dark:text-slate-400">Sanggar Tari</div>
+                    </div>
+                    <div class="bg-white/60 dark:bg-base-800/60 backdrop-blur-md rounded-2xl p-6 border border-accent-secondary/10 shadow-lg">
+                        <div class="text-3xl font-bold text-accent-secondary mb-2">85</div>
+                        <div class="text-sm text-base-800 dark:text-slate-400">Lowongan Aktif</div>
+                    </div>
+                    <div class="bg-white/60 dark:bg-base-800/60 backdrop-blur-md rounded-2xl p-6 border border-accent-primary/10 shadow-lg">
+                        <div class="text-3xl font-bold text-accent-primary mb-2">42</div>
+                        <div class="text-sm text-base-800 dark:text-slate-400">Event Bulan Ini</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Peta Budaya Section -->
+        <section id="peta" class="py-24 px-6 bg-white/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
+                    Peta Budaya Tari Nusantara
+                </h2>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+                    Temukan sanggar tari, komunitas, dan event tari di seluruh Indonesia dengan mudah
+                </p>
+                
+                <div class="flex flex-wrap justify-center items-center gap-4 mb-8">
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm bg-accent-primary/10 text-accent-primary border border-accent-primary/20 active" data-filter="all">
+                        Semua
+                    </button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm bg-accent-secondary/10 text-accent-secondary border border-accent-secondary/20" data-filter="sanggar">
+                        Sanggar Tari
+                    </button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20" data-filter="event">
+                        Event
+                    </button>
+                    <button class="filter-btn px-5 py-2 rounded-full font-medium text-sm bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20" data-filter="komunitas">
+                        Komunitas
+                    </button>
+                </div>
+                
+                <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl shadow-2xl dark:shadow-none p-4 mb-8">
+                    <div id="map-container" class="w-full h-[500px] bg-slate-200 dark:bg-base-900 rounded-lg"></div>
+                </div>
+                
+                <div class="text-center">
+                    <button id="find-location" class="px-6 py-3 bg-accent-secondary text-base-900 font-semibold rounded-lg shadow-lg shadow-accent-secondary/30 transition-all duration-300 hover:bg-yellow-600 hover:shadow-xl flex items-center gap-2 mx-auto">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Temukan di Sekitar Saya
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kalender Section -->
+        <section id="kalender" class="py-24 px-6 bg-base-100/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
+                    Kalender Event Tari
+                </h2>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+                    Pantau jadwal event tari di seluruh Indonesia
+                </p>
+                
+                <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl shadow-2xl dark:shadow-none p-6">
+                    <div id="calendar" class="w-full min-h-[400px] flex items-center justify-center">
+                        <p class="text-center text-base-800 dark:text-slate-400">
+                            Kalender event akan segera hadir!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Section -->
+        <section id="event" class="py-24 px-6 bg-base-100/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-16">
+                    Event Tari Terbaru
+                </h2>
+                
+                <div class="mb-12">
+                    <h3 class="text-2xl font-bold text-[#1E1E1E] dark:text-white mb-6">Event Hari Ini</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden shadow-lg dark:shadow-none">
+                            <div class="p-6">
+                                <span class="text-sm font-semibold text-accent-primary mb-2 block">10 NOV 2025</span>
+                                <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-3">Pagelaran Tari Kolosal</h3>
+                                <p class="text-base-800 dark:text-slate-400 text-sm mb-4">
+                                    Lokasi: Candi Prambanan, Yogyakarta.
+                                </p>
+                                <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Detail</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-bold text-[#1E1E1E] dark:text-white mb-6">Event Mendatang</h3>
+                    <div class="event-timeline pl-10">
+                        <div class="mb-8 relative">
+                            <div class="absolute -left-[1.95rem] top-2 w-6 h-6 rounded-full bg-accent-primary border-4 border-white dark:border-base-900"></div>
+                            <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6 shadow-lg dark:shadow-none">
+                                <span class="text-sm font-semibold text-accent-primary mb-2 block">15 NOV 2025</span>
+                                <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-3">Festival Tari Nusantara</h3>
+                                <p class="text-base-800 dark:text-slate-400 text-sm mb-4">
+                                    Lokasi: Taman Mini Indonesia Indah, Jakarta.
+                                </p>
+                                <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Detail</a>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-8 relative">
+                            <div class="absolute -left-[1.95rem] top-2 w-6 h-6 rounded-full bg-accent-secondary border-4 border-white dark:border-base-900"></div>
+                            <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6 shadow-lg dark:shadow-none">
+                                <span class="text-sm font-semibold text-accent-secondary mb-2 block">20 NOV 2025</span>
+                                <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-3">Workshop Tari Kontemporer</h3>
+                                <p class="text-base-800 dark:text-slate-400 text-sm mb-4">
+                                    Lokasi: Gedung Kesenian, Surabaya.
+                                </p>
+                                <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Detail</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Direktori Sanggar Section -->
+        <section id="direktori" class="py-24 px-6 bg-white/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
+                    Direktori Sanggar Tari Indonesia
+                </h2>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+                    Temukan sanggar tari terdekat dan pelajari berbagai jenis tarian Nusantara
+                </p>
+                
+                <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
+                    <div class="flex flex-wrap gap-4">
+                        <div class="filter-dropdown">
+                            <button class="px-5 py-2 rounded-lg font-medium text-sm bg-white dark:bg-base-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-700 flex items-center gap-2">
+                                Provinsi
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="filter-content">
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Jawa Barat</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Jawa Tengah</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Jawa Timur</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Bali</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Sumatera Utara</div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-dropdown">
+                            <button class="px-5 py-2 rounded-lg font-medium text-sm bg-white dark:bg-base-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-base-700 flex items-center gap-2">
+                                Jenis Tari
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div class="filter-content">
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Tradisional</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Kontemporer</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Modern</div>
+                                <div class="p-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-base-700 rounded">Klasik</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm text-slate-600 dark:text-slate-400">
+                        Menampilkan 12 dari 45 sanggar
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Sanggar Card 1 -->
+                    <div class="sanggar-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1547153760-18fc86324498?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sanggar Tari" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Sanggar Tari Kemuning</h3>
+                            <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Cirebon, Jawa Barat</p>
+                            <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Spesialisasi: Tari Topeng, Tari Tradisional</p>
+                            <div class="flex justify-between items-center">
+                                <a href="#" class="text-accent-primary font-medium text-sm">Lihat Profil</a>
+                                <button class="text-slate-500 hover:text-accent-primary">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sanggar Card 2 -->
+                    <div class="sanggar-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1531058020387-3be344556be6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sanggar Tari" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Sanggar Tari Uluwatu</h3>
+                            <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Bali</p>
+                            <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Spesialisasi: Tari Kecak, Tari Legong</p>
+                            <div class="flex justify-between items-center">
+                                <a href="#" class="text-accent-primary font-medium text-sm">Lihat Profil</a>
+                                <button class="text-slate-500 hover:text-accent-primary">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sanggar Card 3 -->
+                    <div class="sanggar-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Sanggar Tari" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Sanggar Tari Serumpun</h3>
+                            <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Medan, Sumatera Utara</p>
+                            <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Spesialisasi: Tari Melayu, Tari Tradisional</p>
+                            <div class="flex justify-between items-center">
+                                <a href="#" class="text-accent-primary font-medium text-sm">Lihat Profil</a>
+                                <button class="text-slate-500 hover:text-accent-primary">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-12">
+                    <button class="px-8 py-3 bg-accent-primary/10 text-accent-primary font-semibold rounded-lg border border-accent-primary/20 transition-all duration-300 hover:bg-accent-primary/20">
+                        Lihat Semua Sanggar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profil Section -->
+        <section id="profiles" class="py-24 px-6 bg-base-100/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
+                    Profil Penari & Koreografer
+                </h2>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+                    Kenali para penari dan koreografer berbakat dari seluruh Indonesia
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Profil 1 -->
+                    <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
+                        <img src="https://ui-avatars.com/api/?name=Andi+W&background=800000&color=fff&size=120&rounded=true" alt="Andi Wijaya" class="w-24 h-24 rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Andi Wijaya</h3>
+                        <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Penari Tradisional & Kontemporer</p>
+                        <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
+                    </div>
+                    
+                    <!-- Profil 2 -->
+                    <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
+                        <img src="https://ui-avatars.com/api/?name=Sari+D&background=D4AF37&color=fff&size=120&rounded=true" alt="Sari Dewi" class="w-24 h-24 rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Sari Dewi</h3>
+                        <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Koreografer & Instruktur Tari</p>
+                        <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
+                    </div>
+                    
+                    <!-- Profil 3 -->
+                    <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
+                        <img src="https://ui-avatars.com/api/?name=Rizki+M&background=2C2C2C&color=fff&size=120&rounded=true" alt="Rizki Maulana" class="w-24 h-24 rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Rizki Maulana</h3>
+                        <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Penari Modern & Kontemporer</p>
+                        <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
+                    </div>
+                    
+                    <!-- Profil 4 -->
+                    <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden text-center p-6">
+                        <img src="https://ui-avatars.com/api/?name=Dewi+S&background=800000&color=fff&size=120&rounded=true" alt="Dewi Sari" class="w-24 h-24 rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Dewi Sari</h3>
+                        <p class="text-base-800 dark:text-slate-400 text-sm mb-4">Penari Tradisional Bali</p>
+                        <a href="#" class="inline-block px-4 py-2 bg-accent-primary/10 text-accent-primary text-sm font-medium rounded-md hover:bg-accent-primary/20 transition-colors">Lihat Profil</a>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-12">
+                    <button class="px-8 py-3 bg-accent-primary/10 text-accent-primary font-semibold rounded-lg border border-accent-primary/20 transition-all duration-300 hover:bg-accent-primary/20">
+                        Lihat Semua Profil
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Talent Marketplace Section -->
+        <section id="marketplace" class="py-24 px-6 bg-white/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
+                    Talent Marketplace & Lowongan
+                </h2>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+                    Temukan peluang karir dan kolaborasi dalam dunia seni tari Indonesia
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <!-- Lowongan 1 -->
+                    <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-sm font-semibold text-accent-secondary mb-1 block">FULL-TIME</span>
+                                <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Penari Profesional (Pagelaran Kolosal)</h3>
+                                <p class="text-base-800 dark:text-slate-400 text-sm">Lokasi: Jakarta</p>
+                                <p class="text-base-800 dark:text-slate-400 text-sm">Perusahaan: Teater Nusantara</p>
+                            </div>
+                            <button class="text-slate-400 hover:text-accent-primary">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-500 dark:text-slate-400">Diposting 2 hari lalu</span>
+                            <a href="#" class="px-5 py-2 bg-accent-secondary text-base-900 text-sm font-semibold rounded-lg transition-all duration-300 hover:bg-yellow-600">Lamar</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Lowongan 2 -->
+                    <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-sm font-semibold text-accent-primary mb-1 block">PART-TIME</span>
+                                <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">Instruktur Tari Tradisional</h3>
+                                <p class="text-base-800 dark:text-slate-400 text-sm">Lokasi: Bandung</p>
+                                <p class="text-base-800 dark:text-slate-400 text-sm">Perusahaan: Sanggar Seni Merak</p>
+                            </div>
+                            <button class="text-slate-400 hover:text-accent-primary">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-500 dark:text-slate-400">Diposting 5 hari lalu</span>
+                            <a href="#" class="px-5 py-2 bg-accent-secondary text-base-900 text-sm font-semibold rounded-lg transition-all duration-300 hover:bg-yellow-600">Lamar</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button class="px-8 py-3 bg-accent-primary text-white font-semibold rounded-lg shadow-lg shadow-accent-primary/30 transition-all duration-300 hover:bg-red-900 hover:shadow-xl">
+                        Lihat Semua Lowongan
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forum Section -->
+        <section id="forum" class="py-24 px-6 bg-white/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h2 class="text-4xl font-bold text-center text-[#1E1E1E] dark:text-white mb-8">
+                    Forum Diskusi Tari Nusantara
+                </h2>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+                    Berbagi pengetahuan, pengalaman, dan berkolaborasi dengan sesama pecinta tari
+                </p>
+                
+                <div class="text-center mb-12">
+                    <button id="create-discussion" class="px-8 py-3 bg-accent-primary text-white font-semibold rounded-lg shadow-lg shadow-accent-primary/30 transition-all duration-300 hover:bg-red-900 hover:shadow-xl">
+                        Buat Diskusi Baru
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Forum Card 1 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <img src="https://ui-avatars.com/api/?name=Andi+W&background=800000&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                <span class="font-semibold text-slate-800 dark:text-white">Andi Wijaya</span>
+                            </div>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm">
+                                "Tips Menari Saman: Teknik dasar dan pola lantai yang sinkron untuk pemula."
+                            </p>
+                            <div class="flex justify-between text-sm text-slate-500">
+                                <span>2 hari lalu</span>
+                                <span>15 komentar</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Forum Card 2 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <img src="https://ui-avatars.com/api/?name=Sari+D&background=D4AF37&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                <span class="font-semibold text-slate-800 dark:text-white">Sari Dewi</span>
+                            </div>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm">
+                                "Pengalaman mengikuti workshop tari kontemporer di Yogyakarta sangat menginspirasi!"
+                            </p>
+                            <div class="flex justify-between text-sm text-slate-500">
+                                <span>5 hari lalu</span>
+                                <span>8 komentar</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Forum Card 3 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <img src="https://ui-avatars.com/api/?name=Rizki+M&background=2C2C2C&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                <span class="font-semibold text-slate-800 dark:text-white">Rizki Maulana</span>
+                            </div>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm">
+                                "Rekomendasi kostum tari tradisional untuk pentas sekolah yang berkualitas."
+                            </p>
+                            <div class="flex justify-between text-sm text-slate-500">
+                                <span>1 minggu lalu</span>
+                                <span>22 komentar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-16">
+                    <a href="forum.html" class="px-8 py-3 bg-accent-primary/10 text-accent-primary font-semibold rounded-lg border border-accent-primary/20 transition-all duration-300 hover:bg-accent-primary/20">
+                        Lihat Forum Lengkap
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-base-900 text-[#F1F1F1] py-16 px-6">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div>
+                <h3 class="text-xl font-semibold text-white mb-4">Ruang Tari Nusantara</h3>
+                <p class="font-light text-slate-300 leading-relaxed">
+                    Platform digital untuk pemetaan, event, dan kolaborasi komunitas seni tari Indonesia.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">Tautan Cepat</h4>
+                <ul class="space-y-2">
+                    <li><a href="#beranda" class="text-slate-300 hover:text-white transition-colors">Beranda</a></li>
+                    <li><a href="#peta" class="text-slate-300 hover:text-white transition-colors">Peta Budaya</a></li>
+                    <li><a href="#event" class="text-slate-300 hover:text-white transition-colors">Event</a></li>
+                    <li><a href="#forum" class="text-slate-300 hover:text-white transition-colors">Forum</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">Media Sosial</h4>
+                <div class="flex gap-4">
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors" aria-label="Instagram">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors" aria-label="Facebook">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    </a>
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors" aria-label="YouTube">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="container mx-auto text-center mt-12 border-t border-base-800 pt-8">
+            <p class="text-slate-400 text-sm font-light">
+                © 2025 Ruang Tari Nusantara. Semua hak dilindungi.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Modal Tentang Kami -->
+    <div class="modal" id="about-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-about-modal">&times;</button>
+            <h2 class="text-3xl font-bold text-[#1E1E1E] dark:text-white mb-6">Tentang Ruang Tari Nusantara</h2>
+            <div class="space-y-4 text-base-800 dark:text-slate-300">
+                <p>
+                    <strong>Ruang Tari Nusantara</strong> adalah platform digital yang didedikasikan untuk komunitas seni tari di seluruh Indonesia. 
+                    Misi kami adalah menjadi pusat informasi, kolaborasi, dan pengembangan bagi para penari, koreografer, dan pecinta seni tari Indonesia.
+                </p>
+                <p>
+                    Platform ini menghubungkan seluruh ekosistem seni tari dalam satu wadah digital terintegrasi, mencakup:
+                </p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Peta budaya untuk menemukan sanggar tari, komunitas, dan event</li>
+                    <li>Direktori sanggar tari terlengkap di Indonesia</li>
+                    <li>Marketplace talenta dan lowongan kerja di bidang tari</li>
+                    <li>Forum diskusi untuk berbagi pengetahuan dan pengalaman</li>
+                    <li>Kalender event tari terbaru di seluruh Nusantara</li>
+                </ul>
+                <p>
+                    Dengan pendekatan digital yang adaptif, platform ini menjadi representasi modernisasi kebudayaan 
+                    yang tidak meninggalkan nilai-nilai tradisi, melainkan menjadikannya relevan dan mudah diakses 
+                    oleh generasi masa kini dan mendatang.
+                </p>
+                <div class="pt-4 border-t border-slate-200 dark:border-base-700 mt-6">
+                    <p class="font-semibold">Dikembangkan oleh Tim SevenFive untuk Kompetisi Budaya Go! 2025</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Buat Diskusi Baru -->
+    <div class="modal" id="discussion-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-discussion-modal">&times;</button>
+            <h2 class="text-3xl font-bold text-[#1E1E1E] dark:text-white mb-6">Buat Diskusi Baru</h2>
+            <form class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Judul Diskusi</label>
+                    <input type="text" class="w-full px-4 py-2 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Kategori</label>
+                    <select class="w-full px-4 py-2 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                        <option>Tips & Teknik</option>
+                        <option>Rekomendasi</option>
+                        <option>Pengalaman</option>
+                        <option>Pertanyaan</option>
+                        <option>Kolaborasi</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Isi Diskusi</label>
+                    <textarea rows="5" class="w-full px-4 py-2 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary"></textarea>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" class="px-6 py-2 bg-slate-200 dark:bg-base-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors hover:bg-slate-300 dark:hover:bg-base-600">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-accent-primary text-white rounded-lg transition-colors hover:bg-red-900">
+                        Posting Diskusi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== THEME TOGGLE =====
+            const toggleButton = document.getElementById('theme-toggle');
+            const iconSun = document.getElementById('icon-sun');
+            const iconMoon = document.getElementById('icon-moon');
+            const root = document.documentElement;
+
+            function updateThemeUI(isDark) {
+                root.classList.toggle('dark', isDark);
+                iconSun.style.display = isDark ? 'block' : 'none';
+                iconMoon.style.display = isDark ? 'none' : 'block';
+            }
+
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            updateThemeUI(savedTheme === 'dark');
+            
+            toggleButton.addEventListener('click', () => {
+                const isDark = root.classList.contains('dark');
+                const newTheme = isDark ? 'light' : 'dark';
+                updateThemeUI(newTheme === 'dark');
+                localStorage.setItem('theme', newTheme);
+                
+                // Reinitialize map when theme changes
+                setTimeout(initMap, 100);
+            });
+
+            // ===== MOBILE MENU =====
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('open');
+            });
+            
+            // Close mobile menu when clicking on a link
+            const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+            mobileMenuLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileMenu.classList.remove('open');
+                });
+            });
+
+            // ===== FLOATING ACTION BUTTON =====
+            const fab = document.getElementById('fab');
+            const fabMenu = document.getElementById('fab-menu');
+            
+            fab.addEventListener('click', function() {
+                fabMenu.classList.toggle('open');
+            });
+            
+            // Close FAB menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!fab.contains(event.target) && !fabMenu.contains(event.target)) {
+                    fabMenu.classList.remove('open');
+                }
+            });
+            
+            // FAB menu items functionality
+            const fabItems = document.querySelectorAll('.fab-item[data-target]');
+            fabItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+                    document.querySelector(target).scrollIntoView({ behavior: 'smooth' });
+                    fabMenu.classList.remove('open');
+                });
+            });
+
+            // ===== MAP INITIALIZATION =====
+            let map;
+            let markers = [];
+            
+            function initMap() {
+                const isDark = document.documentElement.classList.contains('dark');
+                
+                const tileUrl = isDark 
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                
+                const mapElement = document.getElementById('map-container');
+                if (!mapElement) return;
+
+                if (map) {
+                    map.remove();
+                }
+                    
+                map = L.map('map-container').setView([-2.5489, 118.0149], 5);
+
+                L.tileLayer(tileUrl, {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(map);
+
+                // Clear existing markers
+                markers.forEach(marker => {
+                    map.removeLayer(marker);
+                });
+                markers = [];
+
+                // Custom icons for different types
+                const sanggarIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                const eventIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                const komunitasIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                // Sample locations with types
+                const locations = [
+                    { lat: -6.2088, lng: 106.8456, title: "Sanggar Tari Kemuning", type: "sanggar", desc: "Sanggar tari tradisional Cirebon" },
+                    { lat: -7.2575, lng: 112.7521, title: "Pagelaran Tari Kolosal", type: "event", desc: "Event tari kolosal di Surabaya" },
+                    { lat: -8.6705, lng: 115.2126, title: "Komunitas Tari Bali", type: "komunitas", desc: "Komunitas tari tradisional Bali" },
+                    { lat: -6.9175, lng: 107.6191, title: "Sanggar Tari Jaipong", type: "sanggar", desc: "Sanggar tari Jaipong Bandung" },
+                    { lat: -0.7893, lng: 113.9213, title: "Festival Tari Kalimantan", type: "event", desc: "Festival tari daerah Kalimantan" }
+                ];
+
+                locations.forEach(loc => {
+                    let icon;
+                    if (loc.type === 'sanggar') icon = sanggarIcon;
+                    else if (loc.type === 'event') icon = eventIcon;
+                    else icon = komunitasIcon;
+
+                    const marker = L.marker([loc.lat, loc.lng], { icon: icon })
+                        .addTo(map)
+                        .bindPopup(`<b>${loc.title}</b><br>${loc.desc}<br><button class="mt-2 px-3 py-1 bg-accent-primary text-white text-sm rounded">Lihat Detail</button>`);
+                    
+                    // Add data attribute for filtering
+                    marker.getElement().setAttribute('data-type', loc.type);
+                    markers.push(marker);
+                });
+            }
+
+            // Initialize map
+            initMap();
+
+            // ===== MAP FILTERS =====
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Filter markers based on type
+                    markers.forEach(marker => {
+                        const markerType = marker.getElement().getAttribute('data-type');
+                        if (filter === 'all' || markerType === filter) {
+                            map.addLayer(marker);
+                        } else {
+                            map.removeLayer(marker);
+                        }
+                    });
+                });
+            });
+
+            // ===== FIND LOCATION BUTTON =====
+            const findLocationBtn = document.getElementById('find-location');
+            
+            findLocationBtn.addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            
+                            // Pan map to user's location
+                            map.setView([lat, lng], 13);
+                            
+                            // Add a marker at user's location
+                            L.marker([lat, lng])
+                                .addTo(map)
+                                .bindPopup('Lokasi Anda')
+                                .openPopup();
+                                
+                            alert('Peta telah dipusatkan ke lokasi Anda');
+                        },
+                        function(error) {
+                            alert('Tidak dapat mengakses lokasi Anda. Pastikan izin lokasi telah diaktifkan.');
+                        }
+                    );
+                } else {
+                    alert('Browser Anda tidak mendukung geolokasi');
+                }
+            });
+
+            // ===== MODAL FUNCTIONALITY =====
+            const aboutBtn = document.getElementById('about-btn');
+            const aboutModal = document.getElementById('about-modal');
+            const closeAboutModal = document.getElementById('close-about-modal');
+            
+            aboutBtn.addEventListener('click', function() {
+                aboutModal.classList.add('open');
+            });
+            
+            closeAboutModal.addEventListener('click', function() {
+                aboutModal.classList.remove('open');
+            });
+            
+            // Close modal when clicking outside
+            aboutModal.addEventListener('click', function(event) {
+                if (event.target === aboutModal) {
+                    aboutModal.classList.remove('open');
+                }
+            });
+
+            const createDiscussionBtn = document.getElementById('create-discussion');
+            const discussionModal = document.getElementById('discussion-modal');
+            const closeDiscussionModal = document.getElementById('close-discussion-modal');
+            
+            createDiscussionBtn.addEventListener('click', function() {
+                discussionModal.classList.add('open');
+            });
+            
+            closeDiscussionModal.addEventListener('click', function() {
+                discussionModal.classList.remove('open');
+            });
+            
+            // Close modal when clicking outside
+            discussionModal.addEventListener('click', function(event) {
+                if (event.target === discussionModal) {
+                    discussionModal.classList.remove('open');
+                }
+            });
+
+            // ===== SMOOTH SCROLL =====
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 10,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // ===== ANIMATIONS ON SCROLL =====
+            // Simple fade-in animation for sections
+            const sections = document.querySelectorAll('section');
+            
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('section-visible');
+                    }
+                });
+            }, observerOptions);
+            
+            sections.forEach(section => {
+                section.classList.add('section-hidden');
+                observer.observe(section);
+            });
+
+            // ===== SEARCH FUNCTIONALITY =====
+            const searchButton = document.getElementById('search-button');
+            
+            searchButton.addEventListener('click', function() {
+                alert('Fitur pencarian akan segera hadir!');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum Diskusi | Ruang Tari Nusantara</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'base-900': '#1A1A1A',
+                        'base-800': '#2C2C2C',
+                        'base-100': '#FDFBF6',
+                        'accent-primary': '#800000',
+                        'accent-secondary': '#D4AF37',
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #FDFBF6 0%, #FFF8E7 50%, #FDFBF6 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 15s ease infinite;
+            transition: background-color 0.4s ease-out;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(128, 0, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .dark body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a1a1a 50%, #1a1a1a 100%);
+            background-size: 200% 200%;
+            animation: gradient-shift 15s ease infinite;
+        }
+        
+        .dark body::before {
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(128, 0, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+        }
+        
+        .nav-link {
+            position: relative;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #D4AF37;
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .forum-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .forum-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(128, 0, 0, 0.05), rgba(212, 175, 55, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .forum-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 16px 32px rgba(128, 0, 0, 0.15);
+        }
+        
+        .forum-card:hover::after {
+            opacity: 1;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .category-tips { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .category-rekomendasi { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .category-pengalaman { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+        .category-pertanyaan { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .category-kolaborasi { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        
+        .thread-detail {
+            display: none;
+        }
+        
+        .thread-detail.active {
+            display: block;
+        }
+        
+        .thread-list {
+            display: block;
+        }
+        
+        .thread-list.hidden {
+            display: none;
+        }
+        
+        .comment-card {
+            transition: all 0.3s ease;
+        }
+        
+        .comment-card:hover {
+            background: rgba(128, 0, 0, 0.02);
+        }
+        
+        .dark .comment-card:hover {
+            background: rgba(128, 0, 0, 0.1);
+        }
+        
+        /* Mobile menu styles */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            background: white;
+            z-index: 40;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-menu.open {
+            display: block;
+        }
+        
+        .dark .mobile-menu {
+            background: #2C2C2C;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-base-800 dark:text-slate-300 bg-base-100 dark:bg-base-900">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-base-100/80 dark:bg-base-900/80 backdrop-blur-md border-b border-slate-200 dark:border-base-800/50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="mockup.html" class="text-2xl font-semibold text-[#1E1E1E] dark:text-white flex-shrink-0">
+                Ruang Tari Nusantara
+            </a>
+            
+            <div class="flex items-center gap-10">
+                <div class="nav-links hidden md:flex items-center gap-8 text-base-800 dark:text-slate-300">
+                    <a href="mockup.html#beranda" class="nav-link">Beranda</a>
+                    <a href="mockup.html#peta" class="nav-link">Peta Budaya</a>
+                    <a href="mockup.html#kalender" class="nav-link">Kalender</a>
+                    <a href="mockup.html#event" class="nav-link">Event</a>
+                    <a href="mockup.html#direktori" class="nav-link">Direktori</a>
+                    <a href="mockup.html#profiles" class="nav-link">Profil</a>
+                    <a href="mockup.html#marketplace" class="nav-link">Talent</a>
+                    <a href="forum.html" class="nav-link font-semibold text-accent-primary">Forum</a>
+                </div>
+
+                <div class="flex items-center gap-5">
+                    <button id="search-button" class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex-shrink-0" aria-label="Cari">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                    <button id="theme-toggle" class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex-shrink-0" aria-label="Ubah tema">
+                        <svg id="icon-sun" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v2 M12 20v2 M20 12h2 M4 12h-2 M17.95 6.05l1.414-1.414 M6.05 17.95l-1.414 1.414 M6.05 6.05l-1.414-1.414 M17.95 17.95l1.414 1.414 M12 17a5 5 0 1 0 0-10a5 5 0 0 0 0 10z" /></svg>
+                        <svg id="icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="mobile-menu-btn md:hidden text-slate-600 dark:text-slate-300" id="mobile-menu-toggle">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    
+                    <a href="#profil" title="Profil Anda" class="w-9 h-9 bg-base-800 dark:bg-base-100 rounded-full flex items-center justify-center text-white dark:text-base-900 font-semibold text-sm hidden md:flex">
+                        AW
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobile-menu">
+            <div class="flex flex-col space-y-4">
+                <a href="mockup.html#beranda" class="nav-link py-2">Beranda</a>
+                <a href="mockup.html#peta" class="nav-link py-2">Peta Budaya</a>
+                <a href="mockup.html#kalender" class="nav-link py-2">Kalender</a>
+                <a href="mockup.html#event" class="nav-link py-2">Event</a>
+                <a href="mockup.html#direktori" class="nav-link py-2">Direktori</a>
+                <a href="mockup.html#profiles" class="nav-link py-2">Profil</a>
+                <a href="mockup.html#marketplace" class="nav-link py-2">Talent</a>
+                <a href="forum.html" class="nav-link py-2 font-semibold text-accent-primary">Forum</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-24">
+        <!-- Forum Header -->
+        <section class="py-12 px-6 bg-white/50 dark:bg-transparent">
+            <div class="container mx-auto">
+                <h1 class="text-4xl md:text-5xl font-bold text-center text-[#1E1E1E] dark:text-white mb-4">
+                    Forum Diskusi Tari Nusantara
+                </h1>
+                <p class="text-center text-lg text-base-800 dark:text-slate-400 max-w-2xl mx-auto mb-8">
+                    Berbagi pengetahuan, pengalaman, dan berkolaborasi dengan sesama pecinta tari
+                </p>
+                
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                    <div class="flex flex-wrap gap-2">
+                        <button class="filter-btn px-4 py-2 rounded-full font-medium text-sm bg-accent-primary/10 text-accent-primary border border-accent-primary/20 active" data-filter="all">
+                            Semua
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full font-medium text-sm bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20" data-filter="tips">
+                            Tips & Teknik
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full font-medium text-sm bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20" data-filter="rekomendasi">
+                            Rekomendasi
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full font-medium text-sm bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20" data-filter="pengalaman">
+                            Pengalaman
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full font-medium text-sm bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20" data-filter="pertanyaan">
+                            Pertanyaan
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full font-medium text-sm bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20" data-filter="kolaborasi">
+                            Kolaborasi
+                        </button>
+                    </div>
+                    
+                    <button id="create-discussion" class="px-6 py-3 bg-accent-primary text-white font-semibold rounded-lg shadow-lg shadow-accent-primary/30 transition-all duration-300 hover:bg-red-900 hover:shadow-xl flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Buat Diskusi Baru
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Thread List View -->
+        <section id="thread-list" class="thread-list py-8 px-6">
+            <div class="container mx-auto">
+                <div class="mb-6 flex justify-between items-center">
+                    <div class="text-sm text-slate-600 dark:text-slate-400">
+                        Menampilkan <span id="thread-count">12</span> diskusi
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-slate-600 dark:text-slate-400">Urutkan:</label>
+                        <select id="sort-select" class="px-3 py-2 bg-white dark:bg-base-800 rounded-lg border border-slate-200 dark:border-base-700 text-sm">
+                            <option value="latest">Terbaru</option>
+                            <option value="popular">Paling Populer</option>
+                            <option value="comments">Paling Banyak Komentar</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Thread Card 1 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden" data-category="tips" data-thread="1">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=Andi+W&background=800000&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <span class="font-semibold text-slate-800 dark:text-white block">Andi Wijaya</span>
+                                        <span class="text-xs text-slate-500">2 hari lalu</span>
+                                    </div>
+                                </div>
+                                <span class="category-badge category-tips">Tips & Teknik</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3">
+                                Tips Menari Saman: Teknik Dasar dan Pola Lantai
+                            </h3>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm line-clamp-3">
+                                Saya ingin berbagi pengalaman tentang teknik dasar menari Saman. Tarian ini memerlukan sinkronisasi yang sangat baik antara semua penari...
+                            </p>
+                            <div class="flex justify-between items-center text-sm text-slate-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                        15
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        8
+                                    </span>
+                                </div>
+                                <span class="text-accent-primary font-medium">Baca selengkapnya →</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thread Card 2 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden" data-category="pengalaman" data-thread="2">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=Sari+D&background=D4AF37&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <span class="font-semibold text-slate-800 dark:text-white block">Sari Dewi</span>
+                                        <span class="text-xs text-slate-500">5 hari lalu</span>
+                                    </div>
+                                </div>
+                                <span class="category-badge category-pengalaman">Pengalaman</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3">
+                                Workshop Tari Kontemporer di Yogyakarta
+                            </h3>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm line-clamp-3">
+                                Baru saja mengikuti workshop tari kontemporer di Yogyakarta. Pengalaman yang sangat menginspirasi dan membuka wawasan baru...
+                            </p>
+                            <div class="flex justify-between items-center text-sm text-slate-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                        8
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        12
+                                    </span>
+                                </div>
+                                <span class="text-accent-primary font-medium">Baca selengkapnya →</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thread Card 3 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden" data-category="rekomendasi" data-thread="3">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=Rizki+M&background=2C2C2C&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <span class="font-semibold text-slate-800 dark:text-white block">Rizki Maulana</span>
+                                        <span class="text-xs text-slate-500">1 minggu lalu</span>
+                                    </div>
+                                </div>
+                                <span class="category-badge category-rekomendasi">Rekomendasi</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3">
+                                Rekomendasi Kostum Tari Tradisional untuk Pentas Sekolah
+                            </h3>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm line-clamp-3">
+                                Saya sedang mencari rekomendasi tempat penyewaan atau pembuatan kostum tari tradisional yang berkualitas untuk pentas sekolah...
+                            </p>
+                            <div class="flex justify-between items-center text-sm text-slate-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                        22
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        18
+                                    </span>
+                                </div>
+                                <span class="text-accent-primary font-medium">Baca selengkapnya →</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thread Card 4 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden" data-category="pertanyaan" data-thread="4">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=Dewi+S&background=800000&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <span class="font-semibold text-slate-800 dark:text-white block">Dewi Sari</span>
+                                        <span class="text-xs text-slate-500">1 minggu lalu</span>
+                                    </div>
+                                </div>
+                                <span class="category-badge category-pertanyaan">Pertanyaan</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3">
+                                Bagaimana Cara Memulai Belajar Tari Tradisional?
+                            </h3>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm line-clamp-3">
+                                Saya pemula yang tertarik belajar tari tradisional, khususnya tari Bali. Apakah ada yang bisa memberikan saran langkah-langkah awal...
+                            </p>
+                            <div class="flex justify-between items-center text-sm text-slate-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                        10
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        5
+                                    </span>
+                                </div>
+                                <span class="text-accent-primary font-medium">Baca selengkapnya →</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thread Card 5 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden" data-category="kolaborasi" data-thread="5">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=Budi+K&background=D4AF37&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <span class="font-semibold text-slate-800 dark:text-white block">Budi Kurniawan</span>
+                                        <span class="text-xs text-slate-500">2 minggu lalu</span>
+                                    </div>
+                                </div>
+                                <span class="category-badge category-kolaborasi">Kolaborasi</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3">
+                                Mencari Penari untuk Pagelaran Tari Kolosal
+                            </h3>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm line-clamp-3">
+                                Kami sedang mencari penari profesional untuk pagelaran tari kolosal di Jakarta. Jika ada yang tertarik, silakan hubungi...
+                            </p>
+                            <div class="flex justify-between items-center text-sm text-slate-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                        6
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        3
+                                    </span>
+                                </div>
+                                <span class="text-accent-primary font-medium">Baca selengkapnya →</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thread Card 6 -->
+                    <div class="forum-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl overflow-hidden" data-category="tips" data-thread="6">
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=Maya+R&background=2C2C2C&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <span class="font-semibold text-slate-800 dark:text-white block">Maya Rahayu</span>
+                                        <span class="text-xs text-slate-500">2 minggu lalu</span>
+                                    </div>
+                                </div>
+                                <span class="category-badge category-tips">Tips & Teknik</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-3">
+                                Teknik Pernapasan dalam Tari Tradisional
+                            </h3>
+                            <p class="text-base-800 dark:text-slate-400 mb-4 text-sm line-clamp-3">
+                                Teknik pernapasan yang benar sangat penting dalam tari tradisional. Saya ingin berbagi beberapa tips yang telah saya pelajari...
+                            </p>
+                            <div class="flex justify-between items-center text-sm text-slate-500">
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                        9
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        7
+                                    </span>
+                                </div>
+                                <span class="text-accent-primary font-medium">Baca selengkapnya →</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="mt-12 flex justify-center gap-2">
+                    <button class="px-4 py-2 bg-white dark:bg-base-800 rounded-lg border border-slate-200 dark:border-base-700 text-slate-600 dark:text-slate-400 hover:bg-accent-primary/10 hover:text-accent-primary transition-colors">
+                        Sebelumnya
+                    </button>
+                    <button class="px-4 py-2 bg-accent-primary text-white rounded-lg">1</button>
+                    <button class="px-4 py-2 bg-white dark:bg-base-800 rounded-lg border border-slate-200 dark:border-base-700 text-slate-600 dark:text-slate-400 hover:bg-accent-primary/10 hover:text-accent-primary transition-colors">2</button>
+                    <button class="px-4 py-2 bg-white dark:bg-base-800 rounded-lg border border-slate-200 dark:border-base-700 text-slate-600 dark:text-slate-400 hover:bg-accent-primary/10 hover:text-accent-primary transition-colors">3</button>
+                    <button class="px-4 py-2 bg-white dark:bg-base-800 rounded-lg border border-slate-200 dark:border-base-700 text-slate-600 dark:text-slate-400 hover:bg-accent-primary/10 hover:text-accent-primary transition-colors">
+                        Selanjutnya
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Thread Detail View -->
+        <section id="thread-detail" class="thread-detail py-8 px-6">
+            <div class="container mx-auto max-w-4xl">
+                <button id="back-to-list" class="mb-6 flex items-center gap-2 text-accent-primary hover:text-red-900 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Kembali ke Daftar Diskusi
+                </button>
+                
+                <!-- Thread Header -->
+                <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6 mb-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <img id="thread-author-avatar" src="https://ui-avatars.com/api/?name=Andi+W&background=800000&color=fff&rounded=true" alt="User" class="w-12 h-12 rounded-full">
+                            <div>
+                                <span id="thread-author" class="font-semibold text-slate-800 dark:text-white block">Andi Wijaya</span>
+                                <span id="thread-date" class="text-sm text-slate-500">2 hari lalu</span>
+                            </div>
+                        </div>
+                        <span id="thread-category" class="category-badge category-tips">Tips & Teknik</span>
+                    </div>
+                    <h1 id="thread-title" class="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-4">
+                        Tips Menari Saman: Teknik Dasar dan Pola Lantai
+                    </h1>
+                    <div id="thread-content" class="text-base-800 dark:text-slate-300 leading-relaxed mb-6">
+                        <p class="mb-4">
+                            Saya ingin berbagi pengalaman tentang teknik dasar menari Saman. Tarian ini memerlukan sinkronisasi yang sangat baik antara semua penari, dan ada beberapa teknik penting yang perlu dikuasai.
+                        </p>
+                        <p class="mb-4">
+                            <strong>1. Posisi Duduk</strong><br>
+                            Semua penari duduk bersila dengan posisi yang rapat. Posisi ini harus dipertahankan sepanjang tarian untuk menjaga formasi yang rapi.
+                        </p>
+                        <p class="mb-4">
+                            <strong>2. Gerakan Tangan</strong><br>
+                            Gerakan tangan dalam tari Saman sangat cepat dan sinkron. Latihlah gerakan dasar seperti tepuk tangan, tepuk paha, dan gerakan memutar secara berulang.
+                        </p>
+                        <p class="mb-4">
+                            <strong>3. Pola Lantai</strong><br>
+                            Pola lantai dalam Saman biasanya berbentuk garis lurus atau melengkung. Penting untuk menjaga jarak yang konsisten antar penari.
+                        </p>
+                        <p>
+                            <strong>4. Timing dan Sinkronisasi</strong><br>
+                            Ini adalah kunci utama. Semua gerakan harus dilakukan dalam timing yang sama. Latihan rutin dengan metronome bisa membantu.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-6 text-sm text-slate-500">
+                        <button class="flex items-center gap-2 hover:text-accent-primary transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span>8 Suka</span>
+                        </button>
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            <span id="comment-count">15 Komentar</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Comment Form -->
+                <div class="bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Tulis Komentar</h3>
+                    <form id="comment-form" class="space-y-4">
+                        <textarea rows="4" placeholder="Tulis komentar Anda di sini..." class="w-full px-4 py-3 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"></textarea>
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-6 py-2 bg-accent-primary text-white font-semibold rounded-lg transition-all duration-300 hover:bg-red-900">
+                                Kirim Komentar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Comments List -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4">Komentar (15)</h3>
+                    
+                    <!-- Comment 1 -->
+                    <div class="comment-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <img src="https://ui-avatars.com/api/?name=Sari+D&background=D4AF37&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full flex-shrink-0">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-semibold text-slate-800 dark:text-white">Sari Dewi</span>
+                                    <span class="text-xs text-slate-500">1 hari lalu</span>
+                                </div>
+                                <p class="text-base-800 dark:text-slate-300 mb-3">
+                                    Terima kasih atas tipsnya! Saya juga sedang belajar tari Saman. Untuk sinkronisasi, apakah ada latihan khusus yang direkomendasikan?
+                                </p>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <button class="flex items-center gap-1 text-slate-500 hover:text-accent-primary transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        Suka (3)
+                                    </button>
+                                    <button class="text-slate-500 hover:text-accent-primary transition-colors">Balas</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comment 2 -->
+                    <div class="comment-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <img src="https://ui-avatars.com/api/?name=Rizki+M&background=2C2C2C&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full flex-shrink-0">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-semibold text-slate-800 dark:text-white">Rizki Maulana</span>
+                                    <span class="text-xs text-slate-500">1 hari lalu</span>
+                                </div>
+                                <p class="text-base-800 dark:text-slate-300 mb-3">
+                                    Setuju sekali dengan poin tentang timing. Saya biasanya menggunakan musik dengan tempo yang konsisten untuk latihan. Bagaimana pendapat Anda tentang penggunaan metronome?
+                                </p>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <button class="flex items-center gap-1 text-slate-500 hover:text-accent-primary transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        Suka (5)
+                                    </button>
+                                    <button class="text-slate-500 hover:text-accent-primary transition-colors">Balas</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comment 3 -->
+                    <div class="comment-card bg-white dark:bg-base-900/50 backdrop-blur-md border border-slate-200 dark:border-base-800/50 rounded-xl p-5">
+                        <div class="flex items-start gap-4">
+                            <img src="https://ui-avatars.com/api/?name=Dewi+S&background=800000&color=fff&rounded=true" alt="User" class="w-10 h-10 rounded-full flex-shrink-0">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-semibold text-slate-800 dark:text-white">Dewi Sari</span>
+                                    <span class="text-xs text-slate-500">2 hari lalu</span>
+                                </div>
+                                <p class="text-base-800 dark:text-slate-300 mb-3">
+                                    Tips yang sangat membantu! Saya akan mencoba menerapkan teknik-teknik ini dalam latihan saya. Apakah ada video tutorial yang bisa direkomendasikan?
+                                </p>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <button class="flex items-center gap-1 text-slate-500 hover:text-accent-primary transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        Suka (2)
+                                    </button>
+                                    <button class="text-slate-500 hover:text-accent-primary transition-colors">Balas</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-base-900 text-[#F1F1F1] py-16 px-6 mt-16">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div>
+                <h3 class="text-xl font-semibold text-white mb-4">Ruang Tari Nusantara</h3>
+                <p class="font-light text-slate-300 leading-relaxed">
+                    Platform digital untuk pemetaan, event, dan kolaborasi komunitas seni tari Indonesia.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">Tautan Cepat</h4>
+                <ul class="space-y-2">
+                    <li><a href="mockup.html#beranda" class="text-slate-300 hover:text-white transition-colors">Beranda</a></li>
+                    <li><a href="mockup.html#peta" class="text-slate-300 hover:text-white transition-colors">Peta Budaya</a></li>
+                    <li><a href="mockup.html#event" class="text-slate-300 hover:text-white transition-colors">Event</a></li>
+                    <li><a href="forum.html" class="text-slate-300 hover:text-white transition-colors">Forum</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">Media Sosial</h4>
+                <div class="flex gap-4">
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors" aria-label="Instagram">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors" aria-label="Facebook">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                    </a>
+                    <a href="#" class="text-slate-300 hover:text-white transition-colors" aria-label="YouTube">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="container mx-auto text-center mt-12 border-t border-base-800 pt-8">
+            <p class="text-slate-400 text-sm font-light">
+                © 2025 Ruang Tari Nusantara. Semua hak dilindungi.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Modal Buat Diskusi Baru -->
+    <div class="modal" id="discussion-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-discussion-modal">&times;</button>
+            <h2 class="text-3xl font-bold text-[#1E1E1E] dark:text-white mb-6">Buat Diskusi Baru</h2>
+            <form id="new-discussion-form" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Judul Diskusi</label>
+                    <input type="text" required class="w-full px-4 py-2 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary" placeholder="Masukkan judul diskusi">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Kategori</label>
+                    <select required class="w-full px-4 py-2 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                        <option value="">Pilih Kategori</option>
+                        <option value="tips">Tips & Teknik</option>
+                        <option value="rekomendasi">Rekomendasi</option>
+                        <option value="pengalaman">Pengalaman</option>
+                        <option value="pertanyaan">Pertanyaan</option>
+                        <option value="kolaborasi">Kolaborasi</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Isi Diskusi</label>
+                    <textarea rows="6" required class="w-full px-4 py-2 bg-slate-100 dark:bg-base-800 rounded-lg border border-slate-300 dark:border-base-700 focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none" placeholder="Tulis isi diskusi Anda di sini..."></textarea>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" id="cancel-discussion" class="px-6 py-2 bg-slate-200 dark:bg-base-700 text-slate-700 dark:text-slate-300 rounded-lg transition-colors hover:bg-slate-300 dark:hover:bg-base-600">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-accent-primary text-white rounded-lg transition-colors hover:bg-red-900">
+                        Posting Diskusi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.open {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .dark .modal-content {
+            background: #2C2C2C;
+            color: white;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #800000;
+        }
+        
+        .dark .close-modal {
+            color: #D4AF37;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== THEME TOGGLE =====
+            const toggleButton = document.getElementById('theme-toggle');
+            const iconSun = document.getElementById('icon-sun');
+            const iconMoon = document.getElementById('icon-moon');
+            const root = document.documentElement;
+
+            function updateThemeUI(isDark) {
+                root.classList.toggle('dark', isDark);
+                iconSun.style.display = isDark ? 'block' : 'none';
+                iconMoon.style.display = isDark ? 'none' : 'block';
+            }
+
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            updateThemeUI(savedTheme === 'dark');
+            
+            toggleButton.addEventListener('click', () => {
+                const isDark = root.classList.contains('dark');
+                const newTheme = isDark ? 'light' : 'dark';
+                updateThemeUI(newTheme === 'dark');
+                localStorage.setItem('theme', newTheme);
+            });
+
+            // ===== MOBILE MENU =====
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('open');
+            });
+            
+            const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+            mobileMenuLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileMenu.classList.remove('open');
+                });
+            });
+
+            // ===== THREAD NAVIGATION =====
+            const threadList = document.getElementById('thread-list');
+            const threadDetail = document.getElementById('thread-detail');
+            const forumCards = document.querySelectorAll('.forum-card');
+            const backToListBtn = document.getElementById('back-to-list');
+
+            forumCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const threadId = this.getAttribute('data-thread');
+                    showThreadDetail(threadId);
+                });
+            });
+
+            backToListBtn.addEventListener('click', function() {
+                threadList.classList.remove('hidden');
+                threadDetail.classList.remove('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            function showThreadDetail(threadId) {
+                threadList.classList.add('hidden');
+                threadDetail.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // ===== FILTER BUTTONS =====
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    filterThreads(filter);
+                });
+            });
+
+            function filterThreads(filter) {
+                const cards = document.querySelectorAll('.forum-card');
+                let visibleCount = 0;
+                
+                cards.forEach(card => {
+                    const category = card.getAttribute('data-category');
+                    if (filter === 'all' || category === filter) {
+                        card.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                document.getElementById('thread-count').textContent = visibleCount;
+            }
+
+            // ===== SORT SELECT =====
+            const sortSelect = document.getElementById('sort-select');
+            sortSelect.addEventListener('change', function() {
+                // In a real app, this would sort the threads
+                console.log('Sort by:', this.value);
+            });
+
+            // ===== MODAL FUNCTIONALITY =====
+            const createDiscussionBtn = document.getElementById('create-discussion');
+            const discussionModal = document.getElementById('discussion-modal');
+            const closeDiscussionModal = document.getElementById('close-discussion-modal');
+            const cancelDiscussionBtn = document.getElementById('cancel-discussion');
+            const newDiscussionForm = document.getElementById('new-discussion-form');
+            
+            createDiscussionBtn.addEventListener('click', function() {
+                discussionModal.classList.add('open');
+            });
+            
+            closeDiscussionModal.addEventListener('click', function() {
+                discussionModal.classList.remove('open');
+            });
+            
+            cancelDiscussionBtn.addEventListener('click', function() {
+                discussionModal.classList.remove('open');
+                newDiscussionForm.reset();
+            });
+            
+            discussionModal.addEventListener('click', function(event) {
+                if (event.target === discussionModal) {
+                    discussionModal.classList.remove('open');
+                    newDiscussionForm.reset();
+                }
+            });
+
+            newDiscussionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Diskusi berhasil dibuat! (Demo)');
+                discussionModal.classList.remove('open');
+                newDiscussionForm.reset();
+            });
+
+            // ===== COMMENT FORM =====
+            const commentForm = document.getElementById('comment-form');
+            commentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const textarea = this.querySelector('textarea');
+                if (textarea.value.trim()) {
+                    alert('Komentar berhasil dikirim! (Demo)');
+                    textarea.value = '';
+                }
+            });
+
+            // ===== SEARCH FUNCTIONALITY =====
+            const searchButton = document.getElementById('search-button');
+            searchButton.addEventListener('click', function() {
+                const searchTerm = prompt('Masukkan kata kunci pencarian:');
+                if (searchTerm) {
+                    searchThreads(searchTerm);
+                }
+            });
+
+            function searchThreads(term) {
+                const cards = document.querySelectorAll('.forum-card');
+                let visibleCount = 0;
+                
+                cards.forEach(card => {
+                    const title = card.querySelector('h3').textContent.toLowerCase();
+                    const content = card.querySelector('p').textContent.toLowerCase();
+                    const searchTerm = term.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || content.includes(searchTerm)) {
+                        card.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                document.getElementById('thread-count').textContent = visibleCount;
+                
+                // Reset filter buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                filterButtons[0].classList.add('active'); // Set "Semua" as active
+            }
+
+            // ===== LIKE FUNCTIONALITY =====
+            const likeButtons = document.querySelectorAll('.forum-card, .comment-card');
+            
+            likeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (e.target.closest('button') && e.target.closest('button').textContent.includes('Suka')) {
+                        e.stopPropagation();
+                        const likeBtn = e.target.closest('button');
+                        const likeCount = likeBtn.querySelector('span') || likeBtn;
+                        let count = parseInt(likeCount.textContent.match(/\d+/)) || 0;
+                        
+                        if (likeBtn.classList.contains('liked')) {
+                            count--;
+                            likeBtn.classList.remove('liked');
+                            likeBtn.style.color = '';
+                        } else {
+                            count++;
+                            likeBtn.classList.add('liked');
+                            likeBtn.style.color = '#800000';
+                        }
+                        
+                        if (likeBtn.querySelector('span')) {
+                            likeBtn.querySelector('span').textContent = `Suka (${count})`;
+                        } else {
+                            likeBtn.textContent = `Suka (${count})`;
+                        }
+                    }
+                });
+            });
+
+            // ===== THREAD DATA =====
+            const threadData = {
+                1: {
+                    author: "Andi Wijaya",
+                    avatar: "https://ui-avatars.com/api/?name=Andi+W&background=800000&color=fff&rounded=true",
+                    date: "2 hari lalu",
+                    category: "tips",
+                    categoryText: "Tips & Teknik",
+                    title: "Tips Menari Saman: Teknik Dasar dan Pola Lantai",
+                    content: `
+                        <p class="mb-4">
+                            Saya ingin berbagi pengalaman tentang teknik dasar menari Saman. Tarian ini memerlukan sinkronisasi yang sangat baik antara semua penari, dan ada beberapa teknik penting yang perlu dikuasai.
+                        </p>
+                        <p class="mb-4">
+                            <strong>1. Posisi Duduk</strong><br>
+                            Semua penari duduk bersila dengan posisi yang rapat. Posisi ini harus dipertahankan sepanjang tarian untuk menjaga formasi yang rapi.
+                        </p>
+                        <p class="mb-4">
+                            <strong>2. Gerakan Tangan</strong><br>
+                            Gerakan tangan dalam tari Saman sangat cepat dan sinkron. Latihlah gerakan dasar seperti tepuk tangan, tepuk paha, dan gerakan memutar secara berulang.
+                        </p>
+                        <p class="mb-4">
+                            <strong>3. Pola Lantai</strong><br>
+                            Pola lantai dalam Saman biasanya berbentuk garis lurus atau melengkung. Penting untuk menjaga jarak yang konsisten antar penari.
+                        </p>
+                        <p>
+                            <strong>4. Timing dan Sinkronisasi</strong><br>
+                            Ini adalah kunci utama. Semua gerakan harus dilakukan dalam timing yang sama. Latihan rutin dengan metronome bisa membantu.
+                        </p>
+                    `,
+                    likes: 8,
+                    comments: 15
+                },
+                2: {
+                    author: "Sari Dewi",
+                    avatar: "https://ui-avatars.com/api/?name=Sari+D&background=D4AF37&color=fff&rounded=true",
+                    date: "5 hari lalu",
+                    category: "pengalaman",
+                    categoryText: "Pengalaman",
+                    title: "Workshop Tari Kontemporer di Yogyakarta",
+                    content: `
+                        <p class="mb-4">
+                            Baru saja mengikuti workshop tari kontemporer di Yogyakarta. Pengalaman yang sangat menginspirasi dan membuka wawasan baru tentang ekspresi dalam tari.
+                        </p>
+                        <p class="mb-4">
+                            Workshop ini diadakan di Sanggar Tari Lintang selama 3 hari penuh. Instrukturnya adalah Maestro Tari Kontemporer Indonesia, Bapak Indra Gunawan.
+                        </p>
+                        <p class="mb-4">
+                            <strong>Yang saya pelajari:</strong><br>
+                            - Teknik dasar tari kontemporer<br>
+                            - Improvisasi dan ekspresi bebas<br>
+                            - Penggunaan ruang dan waktu dalam koreografi<br>
+                            - Kolaborasi dengan musik live
+                        </p>
+                        <p>
+                            Bagi yang tertarik, workshop serupa akan diadakan lagi bulan depan. Sangat recommended untuk penari yang ingin mengembangkan skill!
+                        </p>
+                    `,
+                    likes: 12,
+                    comments: 8
+                },
+                3: {
+                    author: "Rizki Maulana",
+                    avatar: "https://ui-avatars.com/api/?name=Rizki+M&background=2C2C2C&color=fff&rounded=true",
+                    date: "1 minggu lalu",
+                    category: "rekomendasi",
+                    categoryText: "Rekomendasi",
+                    title: "Rekomendasi Kostum Tari Tradisional untuk Pentas Sekolah",
+                    content: `
+                        <p class="mb-4">
+                            Saya sedang mencari rekomendasi tempat penyewaan atau pembuatan kostum tari tradisional yang berkualitas untuk pentas sekolah anak saya.
+                        </p>
+                        <p class="mb-4">
+                            Anak saya akan tampil dalam pentas seni sekolah dengan tarian daerah dari Bali. Kami membutuhkan kostum yang autentik namun nyaman dipakai oleh anak-anak.
+                        </p>
+                        <p class="mb-4">
+                            <strong>Kriteria yang dicari:</strong><br>
+                            - Bahan berkualitas dan nyaman<br>
+                            - Desain autentik sesuai daerah<br>
+                            - Tersedia dalam berbagai ukuran anak<br>
+                            - Harga terjangkau untuk penyewaan<br>
+                            - Lokasi di Jakarta atau bisa dikirim
+                        </p>
+                        <p>
+                            Jika ada yang punya pengalaman dengan penyewaan kostum yang bagus, mohon bagikan informasinya. Terima kasih!
+                        </p>
+                    `,
+                    likes: 18,
+                    comments: 22
+                }
+            };
+
+            // Update thread detail view with actual data
+            function updateThreadDetail(threadId) {
+                const thread = threadData[threadId];
+                if (!thread) return;
+
+                document.getElementById('thread-author-avatar').src = thread.avatar;
+                document.getElementById('thread-author').textContent = thread.author;
+                document.getElementById('thread-date').textContent = thread.date;
+                document.getElementById('thread-category').textContent = thread.categoryText;
+                document.getElementById('thread-category').className = `category-badge category-${thread.category}`;
+                document.getElementById('thread-title').textContent = thread.title;
+                document.getElementById('thread-content').innerHTML = thread.content;
+                document.getElementById('comment-count').textContent = `${thread.comments} Komentar`;
+                
+                // Update like count in detail view
+                const likeBtn = document.querySelector('#thread-detail .flex.items-center.gap-6 button');
+                if (likeBtn) {
+                    likeBtn.querySelector('span').textContent = `${thread.likes} Suka`;
+                }
+            }
+
+            // Modify the showThreadDetail function to use actual data
+            const originalShowThreadDetail = showThreadDetail;
+            showThreadDetail = function(threadId) {
+                updateThreadDetail(threadId);
+                originalShowThreadDetail(threadId);
+            };
+
+            // Initialize with first thread data (for demo purposes)
+            updateThreadDetail(1);
+        });
+    </script>
+</body>
+</html>
